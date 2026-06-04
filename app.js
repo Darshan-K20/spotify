@@ -1420,8 +1420,8 @@ function showView(viewId, metadata = null) {
     renderLocalTracksTable();
     els.headerGlow.style.setProperty('--theme-color', 'rgba(70, 80, 95, 0.15)');
   } else if (viewId === 'cloud') {
-    els.sections.cloud.classList.add('active');
-    els.nav.cloud.classList.add('active');
+    if (els.sections.cloud) els.sections.cloud.classList.add('active');
+    if (els.nav.cloud) els.nav.cloud.classList.add('active');
     renderCloudTracksTable();
     els.headerGlow.style.setProperty('--theme-color', 'rgba(16, 185, 129, 0.15)');
   } else if (viewId === 'queue') {
@@ -2718,7 +2718,9 @@ function setupEventListeners() {
   els.nav.search.onclick = () => showView('search');
   els.nav.liked.onclick = () => showView('liked');
   els.nav.local.onclick = () => showView('local');
-  els.nav.cloud.onclick = () => showView('cloud');
+  if (els.nav.cloud) {
+    els.nav.cloud.onclick = () => showView('cloud');
+  }
   els.nav.queue.onclick = () => showView('queue');
 
   // HTML5 Media Session API controls
@@ -2984,8 +2986,8 @@ function setupEventListeners() {
         els.nav.local.classList.add('active');
         renderLocalTracksTable();
       } else if (view === 'cloud') {
-        els.sections.cloud.classList.add('active');
-        els.nav.cloud.classList.add('active');
+        if (els.sections.cloud) els.sections.cloud.classList.add('active');
+        if (els.nav.cloud) els.nav.cloud.classList.add('active');
         renderCloudTracksTable();
       } else if (view === 'queue') {
         els.sections.queue.classList.add('active');
