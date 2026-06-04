@@ -1,4 +1,5 @@
 import { songs } from './songs.js';
+import { firebaseConfig, isFirebaseConfigured } from './firebase-config.js';
 
 // ==========================================
 // Application State & Globals
@@ -17,6 +18,7 @@ let repeatMode = 'off'; // 'off' | 'all' | 'one'
 let likedSongs = [];    // Array of song IDs
 let customPlaylists = []; // Array of { id, name, tracks: [songs] }
 let localTracks = [];     // Array of locally imported songs
+let cloudTracks = [];     // Array of songs imported from Firebase
 
 let activeView = 'home'; // 'home' | 'search' | 'liked' | 'local' | 'playlist' | 'queue'
 let activePlaylistId = null; // Currently viewed playlist ID (preset or custom)
@@ -81,30 +83,31 @@ const presetPlaylists = {
     name: 'Tamil Cinema Beats',
     description: 'High energy cinematic tracks from Kollywood.',
     color: 'hsl(10, 80%, 40%)',
-    trackIds: ['danga-maari-oodhari', 'tvk-campaign-song', 'arjunar-villu', 'oorum-blood', 'god-mode', 'meesaya-murukku', 'verappa-extended', 'powerhouse', 'happy-raj-vibe-check']
+    trackIds: ['danga-maari-oodhari', 'tvk-campaign-song', 'arjunar-villu', 'oorum-blood', 'god-mode', 'meesaya-murukku', 'verappa-extended', 'powerhouse', 'happy-raj-vibe-check', 'marana-mass', 'appadi-podu', 'iphone-6-nee-yendral', 'hukum-thalaivar-alappara', 'ek-do-theen', 'aathi', 'vaathi-coming', 'selfie-pulla', 'paalam', 'pakkam-vanthu', 'neruppu-da']
   },
   'love-melodies': {
     id: 'love-melodies',
     name: 'Love Melodies',
     description: 'Smooth romantic numbers and soft melodies.',
     color: 'hsl(330, 80%, 40%)',
-    trackIds: ['yathe-yathe', 'anbe-en-anbe', 'neeyum-naanum-anbe', 'megamo-aval', 'kannadi-poove', 'kadhale-kadhale', 'sirukki-vaasam']
+    trackIds: ['yathe-yathe', 'anbe-en-anbe', 'neeyum-naanum-anbe', 'megamo-aval', 'kannadi-poove', 'kadhale-kadhale', 'sirukki-vaasam', 'hayyoda', 'venpani-malare-male', 'oru-kan-jaadai', 'oru-manam', 'senjitaley']
   },
   'chill-vibes': {
     id: 'chill-vibes',
     name: 'Chill Vibes',
     description: 'Relaxing sounds and atmospheric chillouts.',
     color: 'hsl(180, 70%, 35%)',
-    trackIds: ['oxygen', 'marappadhilai-nenje', 'o-maara', 'aura-10-10', 'love-detox', 'naan-konjam-karuppu']
+    trackIds: ['oxygen', 'marappadhilai-nenje', 'o-maara', 'aura-10-10', 'love-detox', 'naan-konjam-karuppu', 'please-purinjukko']
   },
   'kollywood-classics': {
     id: 'kollywood-classics',
     name: 'Retro Classics',
     description: 'Iconic classical elements and funky retro rhythms.',
     color: 'hsl(45, 80%, 35%)',
-    trackIds: ['theeratha-vilayattu-pillai', 'pala-palakura', 'goindhammavaala', 'jinguchaa', 'pappali-pazhamey', 'evanda-enakku-custody', 'vetrivel']
+    trackIds: ['theeratha-vilayattu-pillai', 'pala-palakura', 'goindhammavaala', 'jinguchaa', 'pappali-pazhamey', 'evanda-enakku-custody', 'vetrivel', 'gundu-manga-thoppukkulle', 'vaadi-vaadi', 'paisa-note', 'pandi-nattu-kodi']
   }
 };
+
 
 // ==========================================
 // DOM Elements Selection
@@ -123,6 +126,7 @@ const els = {
     local: document.getElementById('section-local'),
     queue: document.getElementById('section-queue'),
     lyrics: document.getElementById('section-lyrics'),
+    cloud: document.getElementById('section-cloud'),
   },
   
   // Navigation tabs
@@ -133,6 +137,7 @@ const els = {
     local: document.getElementById('nav-local'),
     queue: document.getElementById('nav-queue'),
     lyrics: document.getElementById('nav-lyrics'),
+    cloud: document.getElementById('nav-cloud'),
   },
 
   // Scroll Container
@@ -327,6 +332,18 @@ const els = {
   settingsAvatarWrapper: document.querySelector('.settings-avatar-wrapper'),
   settingsAvatarPreview: document.getElementById('settings-settings-avatar-preview') || document.getElementById('settings-avatar-preview'),
   settingsAvatarInput: document.getElementById('settings-avatar-input'),
+  
+  // Cloud Library View Elements
+  cloudSetupGuide: document.getElementById('cloud-setup-guide'),
+  cloudMainView: document.getElementById('cloud-main-view'),
+  cloudFilesDropzone: document.getElementById('cloud-files-dropzone'),
+  cloudFilesHiddenInput: document.getElementById('cloud-files-hidden-input'),
+  cloudTracksTableBody: document.getElementById('cloud-tracks-table-body'),
+  cloudUploadStatus: document.getElementById('cloud-upload-status'),
+  uploadStatusTitle: document.getElementById('upload-status-title'),
+  uploadStatusPercent: document.getElementById('upload-status-percent'),
+  uploadProgressFill: document.getElementById('upload-progress-fill'),
+  btnCopySetupCode: document.getElementById('btn-copy-setup-code'),
 };
 
 function updatePlaybackPositionState() {
@@ -550,6 +567,319 @@ function removeLocalTrackFromDB(trackId) {
 }
 
 // ==========================================
+// Firebase Shared Cloud Storage & Database Logic
+// ==========================================
+let firebaseAppInstance = null;
+let firestoreInstance = null;
+let storageInstance = null;
+
+async function initCloudFirebase() {
+  if (els.btnCopySetupCode) {
+    els.btnCopySetupCode.onclick = () => {
+      const setupCode = JSON.stringify({
+        apiKey: "your-api-key",
+        authDomain: "your-project.firebaseapp.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project.firebasestorage.app",
+        messagingSenderId: "your-sender-id",
+        appId: "your-app-id"
+      }, null, 2);
+      navigator.clipboard.writeText(setupCode).then(() => {
+        showToast("Copied Firebase setup template!");
+      }).catch(err => {
+        console.error("Failed to copy setup code:", err);
+      });
+    };
+  }
+
+  if (!isFirebaseConfigured()) {
+    console.log("Firebase is not configured. Cloud tracks will not be available. Showing Setup Guide.");
+    if (els.cloudSetupGuide) els.cloudSetupGuide.style.display = 'block';
+    if (els.cloudMainView) els.cloudMainView.style.display = 'none';
+    return;
+  }
+
+  try {
+    if (els.cloudSetupGuide) els.cloudSetupGuide.style.display = 'none';
+    if (els.cloudMainView) els.cloudMainView.style.display = 'block';
+
+    console.log("Initializing Firebase dynamic connection...");
+    
+    // Import CDN packages dynamically
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+    const { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+    const { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js');
+
+    // Store modules on window for easy access in upload/delete functions
+    window.FirebaseFirestore = { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy };
+    window.FirebaseStorage = { ref, uploadBytesResumable, getDownloadURL, deleteObject };
+
+    firebaseAppInstance = initializeApp(firebaseConfig);
+    firestoreInstance = getFirestore(firebaseAppInstance);
+    storageInstance = getStorage(firebaseAppInstance);
+
+    console.log("Firebase successfully initialized. Fetching shared cloud songs...");
+    await loadCloudTracks();
+  } catch (err) {
+    console.error("Error setting up Firebase dynamic modules:", err);
+    if (els.cloudSetupGuide) {
+      els.cloudSetupGuide.style.display = 'block';
+      const h2 = els.cloudSetupGuide.querySelector('h2');
+      if (h2) h2.textContent = "Cloud Connection Error";
+      const p = els.cloudSetupGuide.querySelector('.setup-description');
+      if (p) p.textContent = "Failed to connect to Firebase. Error details: " + err.message;
+    }
+  }
+}
+
+async function loadCloudTracks() {
+  if (!firestoreInstance || !window.FirebaseFirestore) return;
+  const { collection, getDocs, query, orderBy } = window.FirebaseFirestore;
+  
+  try {
+    const q = query(collection(firestoreInstance, 'shared_songs'), orderBy('uploadedAt', 'asc'));
+    const querySnapshot = await getDocs(q);
+    
+    cloudTracks = [];
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      cloudTracks.push({
+        id: docSnap.id,
+        title: data.title || "Unknown Title",
+        artist: data.artist || "Cloud Artist",
+        album: data.album || "Cloud Storage",
+        url: data.url,
+        cover: data.cover || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80",
+        color: data.color || `hsl(${Math.floor(Math.random() * 360)}, 60%, 40%)`,
+        size: data.size || "Unknown Size"
+      });
+    });
+    
+    console.log(`Successfully loaded ${cloudTracks.length} tracks from Firebase Cloud!`);
+    renderCloudTracksTable();
+    renderSidebarPlaylists();
+  } catch (err) {
+    console.error("Failed to load tracks from Firestore:", err);
+    showToast("Failed to fetch cloud songs: " + err.message);
+  }
+}
+
+function handleCloudFiles(files) {
+  if (!storageInstance || !firestoreInstance || !window.FirebaseStorage || !window.FirebaseFirestore) {
+    showCustomAlert("Firebase is not initialized. Please verify configuration settings.");
+    return;
+  }
+
+  const { ref, uploadBytesResumable, getDownloadURL } = window.FirebaseStorage;
+  const { collection, addDoc } = window.FirebaseFirestore;
+
+  const audioFiles = Array.from(files).filter(f => f.type.startsWith('audio/') || f.name.endsWith('.mp3'));
+  if (audioFiles.length === 0) return;
+
+  let currentIndex = 0;
+
+  function uploadNext() {
+    if (currentIndex >= audioFiles.length) {
+      els.cloudUploadStatus.style.display = 'none';
+      showToast(`Uploaded ${audioFiles.length} song(s) to the cloud!`);
+      loadCloudTracks();
+      return;
+    }
+
+    const file = audioFiles[currentIndex];
+    const filename = file.name.replace(/\.[^/.]+$/, "");
+    
+    let title = filename;
+    let artist = "Cloud Artist";
+    
+    if (filename.includes(' - ')) {
+      const parts = filename.split(' - ');
+      artist = parts[0].trim();
+      title = parts[1].trim();
+    } else if (filename.includes('-')) {
+      const parts = filename.split('-');
+      artist = parts[0].trim();
+      title = parts[1].trim();
+    }
+
+    title = title.replace(/-MassTamilan\.(com|fm|dev|io)/gi, "").replace(/_/, " ").trim();
+    artist = artist.replace(/-MassTamilan\.(com|fm|dev|io)/gi, "").replace(/_/, " ").trim();
+
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    const storagePath = `songs/${Date.now()}_${file.name}`;
+    const fileRef = ref(storageInstance, storagePath);
+    
+    els.cloudUploadStatus.style.display = 'block';
+    els.uploadStatusTitle.textContent = `Uploading "${title}" (${currentIndex + 1}/${audioFiles.length})...`;
+    els.uploadStatusPercent.textContent = '0%';
+    els.uploadProgressFill.style.width = '0%';
+
+    const uploadTask = uploadBytesResumable(fileRef, file);
+
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        els.uploadStatusPercent.textContent = Math.round(progress) + '%';
+        els.uploadProgressFill.style.width = progress + '%';
+      }, 
+      (error) => {
+        console.error("Upload failed:", error);
+        showCustomAlert(`Failed to upload "${title}": ` + error.message);
+        currentIndex++;
+        uploadNext();
+      }, 
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          const randomHue = Math.floor(Math.random() * 360);
+          const colorVal = `hsl(${randomHue}, 65%, 40%)`;
+
+          await addDoc(collection(firestoreInstance, 'shared_songs'), {
+            title: title,
+            artist: artist,
+            album: "Cloud Library",
+            url: downloadURL,
+            storagePath: storagePath,
+            size: `${sizeMB} MB`,
+            color: colorVal,
+            cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80",
+            uploadedAt: Date.now()
+          });
+
+          currentIndex++;
+          uploadNext();
+        } catch (err) {
+          console.error("Error finalizing cloud track:", err);
+          showCustomAlert("Error finalizing cloud track: " + err.message);
+          currentIndex++;
+          uploadNext();
+        }
+      }
+    );
+  }
+
+  uploadNext();
+}
+
+async function deleteCloudTrack(trackId) {
+  if (!storageInstance || !firestoreInstance || !window.FirebaseStorage || !window.FirebaseFirestore) {
+    showCustomAlert("Firebase is not initialized.");
+    return;
+  }
+
+  const { deleteDoc, doc } = window.FirebaseFirestore;
+  const { ref, deleteObject } = window.FirebaseStorage;
+
+  const confirmDelete = await showCustomConfirm("Are you sure you want to permanently delete this song from the Cloud? It will be deleted for all users and devices.");
+  if (!confirmDelete) return;
+
+  try {
+    showToast("Deleting cloud track...");
+
+    const docRef = doc(firestoreInstance, 'shared_songs', trackId);
+    
+    const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.storagePath) {
+        try {
+          const fileRef = ref(storageInstance, data.storagePath);
+          await deleteObject(fileRef);
+          console.log("Successfully deleted file from storage:", data.storagePath);
+        } catch (err) {
+          console.warn("Storage file deletion failed:", err);
+        }
+      }
+    }
+
+    await deleteDoc(docRef);
+    showToast("Deleted track from cloud database");
+    await loadCloudTracks();
+  } catch (err) {
+    console.error("Failed to delete cloud track:", err);
+    showCustomAlert("Failed to delete track: " + err.message);
+  }
+}
+
+function renderCloudTracksTable() {
+  if (!isFirebaseConfigured()) return;
+
+  if (cloudTracks.length === 0) {
+    els.cloudTracksTableBody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align: center; padding: 32px; color: var(--text-muted);">
+          No songs uploaded to the cloud database yet. Drag & drop files or choose files above.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  els.cloudTracksTableBody.innerHTML = cloudTracks.map((track, idx) => {
+    const activeClass = (currentTrack && currentTrack.id === track.id) ? 'active-playing' : '';
+
+    return `
+      <tr class="${activeClass}" data-track-id="${track.id}">
+        <td class="track-index-col">
+          <span class="track-index-num">${idx + 1}</span>
+          <span class="track-index-play" data-track-id="${track.id}"><i class="fa-solid fa-play"></i></span>
+        </td>
+        <td>
+          <div class="track-title-info">
+            <div class="track-mini-art" style="background: linear-gradient(135deg, ${track.color}, #111); display:flex; align-items:center; justify-content:center; overflow:hidden;">
+              <img src="${track.cover}" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <div class="track-meta-block">
+              <span class="track-title">${track.title}</span>
+              <span class="track-artist">${track.artist}</span>
+            </div>
+          </div>
+        </td>
+        <td>${track.size}</td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="track-options-btn" data-track-id="${track.id}"><i class="fa-solid fa-ellipsis"></i></button>
+            <button class="btn-secondary-circle remove-cloud-btn" data-track-id="${track.id}" style="width:28px; height:28px; font-size:12px;" title="Delete Permanently from Cloud"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  els.cloudTracksTableBody.querySelectorAll('.track-index-play').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trId = btn.getAttribute('data-track-id');
+      playTrackFromList(trId, cloudTracks);
+    });
+  });
+
+  els.cloudTracksTableBody.querySelectorAll('tbody tr').forEach(row => {
+    row.addEventListener('dblclick', () => {
+      const trId = row.getAttribute('data-track-id');
+      playTrackFromList(trId, cloudTracks);
+    });
+  });
+
+  els.cloudTracksTableBody.querySelectorAll('.remove-cloud-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trId = btn.getAttribute('data-track-id');
+      deleteCloudTrack(trId);
+    });
+  });
+
+  els.cloudTracksTableBody.querySelectorAll('.track-options-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trId = btn.getAttribute('data-track-id');
+      showContextMenu(e, trId, 'cloud');
+    });
+  });
+}
+
+// ==========================================
 // Initialization & LocalStorage Load
 // ==========================================
 async function init() {
@@ -559,6 +889,13 @@ async function init() {
     localTracks = await loadLocalTracksFromDB();
   } catch (err) {
     console.error("Failed to load persistent local tracks:", err);
+  }
+
+  // Load Shared Cloud Tracks
+  try {
+    await initCloudFirebase();
+  } catch (err) {
+    console.error("Failed to initialize Firebase or load cloud tracks:", err);
   }
 
   // Load LocalStorage registries
@@ -959,6 +1296,15 @@ function renderSidebarPlaylists() {
         <span class="playlist-subtitle">Virtual • ${localTracks.length} files</span>
       </div>
     </div>
+    <div class="playlist-item" id="sidebar-cloud-playlist">
+      <div class="playlist-thumb" style="background: linear-gradient(135deg, #10b981, #047857); color: #fff;">
+        <i class="fa-solid fa-cloud"></i>
+      </div>
+      <div class="playlist-info">
+        <span class="playlist-title">Cloud Library</span>
+        <span class="playlist-subtitle">Cloud • ${cloudTracks.length} songs</span>
+      </div>
+    </div>
   `;
 
   // Custom playlists
@@ -986,6 +1332,7 @@ function renderSidebarPlaylists() {
   // Add click events to newly generated list items
   document.getElementById('sidebar-liked-playlist').addEventListener('click', () => showView('liked'));
   document.getElementById('sidebar-local-playlist').addEventListener('click', () => showView('local'));
+  document.getElementById('sidebar-cloud-playlist').addEventListener('click', () => showView('cloud'));
   
   els.sidebarPlaylists.querySelectorAll('.custom-playlist-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -1052,6 +1399,11 @@ function showView(viewId, metadata = null) {
     els.nav.local.classList.add('active');
     renderLocalTracksTable();
     els.headerGlow.style.setProperty('--theme-color', 'rgba(70, 80, 95, 0.15)');
+  } else if (viewId === 'cloud') {
+    els.sections.cloud.classList.add('active');
+    els.nav.cloud.classList.add('active');
+    renderCloudTracksTable();
+    els.headerGlow.style.setProperty('--theme-color', 'rgba(16, 185, 129, 0.15)');
   } else if (viewId === 'queue') {
     els.sections.queue.classList.add('active');
     els.nav.queue.classList.add('active');
@@ -1098,7 +1450,7 @@ function renderPlaylistView(playlistId, isCustom = false) {
     plType = 'System Playlist';
     
     // Resolve track lists
-    plTracks = [...songs, ...localTracks].filter(s => likedSongs.includes(s.id));
+    plTracks = [...songs, ...cloudTracks, ...localTracks].filter(s => likedSongs.includes(s.id));
   } else if (isCustom) {
     const plObj = customPlaylists.find(p => p.id === playlistId);
     if (!plObj) {
@@ -1552,7 +1904,8 @@ function updateActiveSongHighlights() {
   const allTables = [
     { tbody: els.playlistTracksTableBody },
     { tbody: els.searchResultsTableBody },
-    { tbody: els.localTracksTableBody }
+    { tbody: els.localTracksTableBody },
+    { tbody: els.cloudTracksTableBody }
   ];
 
   allTables.forEach(({ tbody }) => {
@@ -1604,9 +1957,11 @@ function updateActiveSongHighlights() {
                   if (pl) list = pl.tracks;
                 }
               } else if (tbody === els.searchResultsTableBody) {
-                list = [...songs, ...localTracks];
+                list = [...songs, ...cloudTracks, ...localTracks];
               } else if (tbody === els.localTracksTableBody) {
                 list = localTracks;
+              } else if (tbody === els.cloudTracksTableBody) {
+                list = cloudTracks;
               }
               if (list.length === 0) list = songs;
               playTrackFromList(rowId, list);
@@ -1900,7 +2255,7 @@ function renderMainQueueView() {
 }
 
 function addToQueue(trackId) {
-  const allAvailable = [...songs, ...localTracks];
+  const allAvailable = [...songs, ...cloudTracks, ...localTracks];
   const track = allAvailable.find(s => s.id === trackId);
   if (track) {
     queue.push(track);
@@ -1965,7 +2320,7 @@ function addTrackToPlaylist(trackId, playlistId) {
   const playlist = customPlaylists.find(p => p.id === playlistId);
   if (!playlist) return;
 
-  const track = songs.find(s => s.id === trackId) || localTracks.find(s => s.id === trackId);
+  const track = songs.find(s => s.id === trackId) || cloudTracks.find(s => s.id === trackId) || localTracks.find(s => s.id === trackId);
   if (!track) return;
 
   // Avoid duplicates in custom playlist
@@ -2008,7 +2363,7 @@ function handleSearch(query) {
   els.searchResultsContainer.style.display = 'block';
 
   // Search local files + preset tracks
-  const searchPool = [...songs, ...localTracks];
+  const searchPool = [...songs, ...cloudTracks, ...localTracks];
   const matches = searchPool.filter(track => {
     return track.title.toLowerCase().includes(q) || 
            track.artist.toLowerCase().includes(q) || 
@@ -2343,6 +2698,7 @@ function setupEventListeners() {
   els.nav.search.onclick = () => showView('search');
   els.nav.liked.onclick = () => showView('liked');
   els.nav.local.onclick = () => showView('local');
+  els.nav.cloud.onclick = () => showView('cloud');
   els.nav.queue.onclick = () => showView('queue');
 
   // HTML5 Media Session API controls
@@ -2607,6 +2963,10 @@ function setupEventListeners() {
         els.sections.local.classList.add('active');
         els.nav.local.classList.add('active');
         renderLocalTracksTable();
+      } else if (view === 'cloud') {
+        els.sections.cloud.classList.add('active');
+        els.nav.cloud.classList.add('active');
+        renderCloudTracksTable();
       } else if (view === 'queue') {
         els.sections.queue.classList.add('active');
         els.nav.queue.classList.add('active');
@@ -2646,7 +3006,7 @@ function setupEventListeners() {
   // Context Menu Actions
   document.getElementById('menu-play-now').onclick = () => {
     if (contextMenuSelectedTrackId) {
-      const allAvailable = [...songs, ...localTracks];
+      const allAvailable = [...songs, ...cloudTracks, ...localTracks];
       const trackObj = allAvailable.find(s => s.id === contextMenuSelectedTrackId);
       loadTrack(trackObj, true);
     }
@@ -2801,6 +3161,30 @@ function setupEventListeners() {
       handleLocalFiles(e.dataTransfer.files);
     }
   });
+
+  // Cloud Drag & drop handlers
+  const cloudDropzone = els.cloudFilesDropzone;
+  if (cloudDropzone && els.cloudFilesHiddenInput) {
+    cloudDropzone.onclick = () => els.cloudFilesHiddenInput.click();
+    els.cloudFilesHiddenInput.onchange = (e) => handleCloudFiles(e.target.files);
+
+    cloudDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      cloudDropzone.classList.add('dragover');
+    });
+
+    cloudDropzone.addEventListener('dragleave', () => {
+      cloudDropzone.classList.remove('dragover');
+    });
+
+    cloudDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      cloudDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files) {
+        handleCloudFiles(e.dataTransfer.files);
+      }
+    });
+  }
 
   // Global Key listeners for shortcuts
   document.addEventListener('keydown', (e) => {
