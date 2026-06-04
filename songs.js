@@ -419,5 +419,194 @@ export const songs = [
     url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780505472/Happy_Raj_Vibe_Check_l8s5no.mp3",
     cover: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80",
     color: "hsl(260, 65%, 45%)"
+  },
+  {
+    id: "marana-mass",
+    title: "Marana Mass",
+    artist: "S. P. Balasubrahmanyam, Anirudh Ravichander",
+    album: "Petta",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566515/Marana-Mass-MassTamilan.org_hmga3y.mp3",
+    cover: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(0, 80%, 40%)"
+  },
+  {
+    id: "appadi-podu",
+    title: "Appadi Podu",
+    artist: "Vidyasagar, KK, Anuradha Sriram",
+    album: "Ghilli",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566509/Appadi_Podu_qmjfwv.mp3",
+    cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(25, 85%, 45%)"
+  },
+  {
+    id: "iphone-6-nee-yendral",
+    title: "iPhone 6 Nee Yendral",
+    artist: "Hiphop Tamizha",
+    album: "Indru Netru Naalai",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566509/iPhone-6-Nee-Yendral_dw3owz.mp3",
+    cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(190, 80%, 40%)"
+  },
+  {
+    id: "hukum-thalaivar-alappara",
+    title: "Hukum - Thalaivar Alappara",
+    artist: "Anirudh Ravichander",
+    album: "Jailer",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566509/Hukum---Thalaivar-Alappara-MassTamilan.dev_vgfrsd.mp3",
+    cover: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(15, 90%, 35%)"
+  },
+  {
+    id: "hayyoda",
+    title: "Hayyoda",
+    artist: "Anirudh Ravichander, Priya Mali",
+    album: "Jawan",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566506/Hayyoda-MassTamilan.dev_un99xc.mp3",
+    cover: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(340, 75%, 45%)"
+  },
+  {
+    id: "ek-do-theen",
+    title: "Ek Do Theen",
+    artist: "Yuvan Shankar Raja, Suriya, Andrea Jeremiah",
+    album: "Anjaan",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566505/Ek-Do-Theen_eo85to.mp3",
+    cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(280, 60%, 40%)"
+  },
+  {
+    id: "gundu-manga-thoppukkulle",
+    title: "Gundu Manga Thoppukkulle",
+    artist: "Devi Sri Prasad, Jassie Gift, Malathy Lakshman",
+    album: "Sachein",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566505/Gundu-Manga-Thoppukkulle_hyq7ga.mp3",
+    cover: "https://images.unsplash.com/photo-1509824227185-9c5a01dfbe8d?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(120, 50%, 35%)"
+  },
+  {
+    id: "aathi",
+    title: "Aathi",
+    artist: "Anirudh Ravichander, Vishal Dadlani",
+    album: "Kaththi",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566503/Aathi_o7ww2v.mp3",
+    cover: "https://images.unsplash.com/photo-1487180142328-054b783fc471?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(355, 80%, 40%)"
+  },
+  {
+    id: "venpani-malare-male",
+    title: "Venpani Malare (Male)",
+    artist: "Sean Roldan",
+    album: "Power Paandi",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566492/Venpani-Malare-Male_n7z8ys.mp3",
+    cover: "https://images.unsplash.com/photo-1453090927415-5f45085b65c0?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(200, 70%, 45%)"
+  },
+  {
+    id: "vaadi-vaadi",
+    title: "Vaadi Vaadi",
+    artist: "Devi Sri Prasad, Vijay",
+    album: "Sachein",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566490/Vaadi-Vaadi_xwqgnw.mp3",
+    cover: "https://images.unsplash.com/photo-1518911710364-17ec553bde5d?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(40, 85%, 45%)"
+  },
+  {
+    id: "vaathi-coming",
+    title: "Vaathi Coming",
+    artist: "Anirudh Ravichander, Gana Balachandar",
+    album: "Master",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566490/Vaathi-Coming-MassTamilan.io_ouiz2f.mp3",
+    cover: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(5, 75%, 40%)"
+  },
+  {
+    id: "selfie-pulla",
+    title: "Selfie Pulla",
+    artist: "Vijay, Sunidhi Chauhan",
+    album: "Kaththi",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566485/Selfie_Pulla_qtzhh4.mp3",
+    cover: "https://images.unsplash.com/photo-1517230807984-1628b7c9660f?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(315, 70%, 45%)"
+  },
+  {
+    id: "senjitaley",
+    title: "Senjitaley",
+    artist: "Anirudh Ravichander",
+    album: "Remo",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566483/Senjitaley_evjsuw.mp3",
+    cover: "https://images.unsplash.com/photo-1516280440614-37939bbacd6a?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(330, 85%, 45%)"
+  },
+  {
+    id: "please-purinjukko",
+    title: "Please Purinjukko",
+    artist: "Sean Roldan, Aditi Rao Hydari",
+    album: "Coke Studio Tamil Season 2",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566475/Please_Purinjukko_gcjxef.mp3",
+    cover: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(145, 65%, 40%)"
+  },
+  {
+    id: "paalam",
+    title: "Paalam",
+    artist: "Anirudh Ravichander, Shankar Mahadevan, Shweta Mohan",
+    album: "Kaththi",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566468/Paalam_yg0uu1.mp3",
+    cover: "https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(30, 80%, 40%)"
+  },
+  {
+    id: "oru-kan-jaadai",
+    title: "Oru Kan Jaadai",
+    artist: "Yuvan Shankar Raja, Benny Dayal, Shweta Pandit",
+    album: "Anjaan",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566463/Oru-Kan-Jaadai_cbed35.mp3",
+    cover: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(215, 75%, 40%)"
+  },
+  {
+    id: "pakkam-vanthu",
+    title: "Pakkam Vanthu",
+    artist: "Anirudh Ravichander, Hiphop Tamizha",
+    album: "Kaththi",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566460/Pakkam_Vanthu_dijfkb.mp3",
+    cover: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(245, 60%, 45%)"
+  },
+  {
+    id: "pandi-nattu-kodi",
+    title: "Pandi Nattu Kodi",
+    artist: "Santhosh Narayanan, Antony Dasan",
+    album: "Jigarthanda",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566458/Pandi-Nattu-Kodi_lsinqz.mp3",
+    cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(15, 80%, 45%)"
+  },
+  {
+    id: "neruppu-da",
+    title: "Neruppu Da",
+    artist: "Santhosh Narayanan, Arunraja Kamaraj",
+    album: "Kabali",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566456/Neruppu-Da_yr6foe.mp3",
+    cover: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(0, 90%, 35%)"
+  },
+  {
+    id: "paisa-note",
+    title: "Paisa Note",
+    artist: "Hiphop Tamizha",
+    album: "Comali",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780566455/Paisa-Note-MassTamilan.org_kmr5ev.mp3",
+    cover: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(100, 60%, 40%)"
+  },
+  {
+    id: "oru-manam",
+    title: "Oru Manam",
+    artist: "Harris Jayaraj, Karthik, Shashaa Tirupati",
+    album: "Dhruva Natchathiram",
+    url: "https://res.cloudinary.com/dgzpgsfrs/video/upload/v1780505657/Oru_Manam_rwqu6a.mp3",
+    cover: "https://images.unsplash.com/photo-1471967183377-be0e6f36b609?auto=format&fit=crop&w=300&q=80",
+    color: "hsl(205, 80%, 45%)"
   }
 ];
