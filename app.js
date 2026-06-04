@@ -1,5 +1,25 @@
 import { songs } from './songs.js';
-import { firebaseConfig, isFirebaseConfigured } from './firebase-config.js';
+
+// Inline Firebase Configuration (Removes dependency on external firebase-config.js)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+function isFirebaseConfigured() {
+  return (
+    firebaseConfig &&
+    firebaseConfig.apiKey &&
+    firebaseConfig.apiKey !== "YOUR_API_KEY" &&
+    firebaseConfig.projectId &&
+    firebaseConfig.projectId !== "YOUR_PROJECT_ID"
+  );
+}
+
 
 // ==========================================
 // Application State & Globals
