@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Darshtify - Web Player: Music for everyone</title>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Grid App Shell -->
+  <div id="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo-container">
+        <i class="fa-solid fa-headphones-simple" style="color: var(--spotify-green);"></i>
+        <span>Darshtify</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-item active" id="nav-home">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a class="nav-item" id="nav-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Search</span>
+        </a>
+        <a class="nav-item" id="nav-queue">
+          <i class="fa-solid fa-list-ol"></i>
+          <span>Queue</span>
+        </a>
+        <a class="nav-item" id="nav-liked">
+          <i class="fa-solid fa-heart"></i>
+          <span>Liked Songs</span>
+        </a>
+        <a class="nav-item" id="nav-lyrics">
+          <i class="fa-solid fa-microphone-lines"></i>
+          <span>Lyrics</span>
+        </a>
+        <a class="nav-item" id="nav-local">
+          <i class="fa-solid fa-folder-open"></i>
+          <span>Local Files</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-separator"></div>
+
+      <!-- Playlists Navigation List -->
+      <div class="library-section">
+        <div class="library-header">
+          <span>PLAYLISTS</span>
+          <button id="create-playlist-btn" title="Create Playlist">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+        <div class="playlists-list" id="sidebar-playlists">
+          <!-- Playlists injected dynamically here -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-panel">
+      <!-- Ambient Glow Overlays -->
+      <div class="dynamic-glow" id="header-glow"></div>
+      <div id="visualizer-canvas-overlay">
+        <div class="visualizer-mode-picker" id="viz-mode-picker">
+          <button class="viz-mode-btn active" data-mode="retro-bars" title="Retro Equalizer Bars"><i class="fa-solid fa-chart-simple"></i> Bars</button>
+          <button class="viz-mode-btn" data-mode="ambient-orb" title="Concentric Ambient Glow Orb"><i class="fa-solid fa-circle-nodes"></i> Glow Orb</button>
+          <button class="viz-mode-btn" data-mode="sine-wave" title="Oscillograph Sine Wave"><i class="fa-solid fa-wave-square"></i> Waveform</button>
+        </div>
+        <canvas id="music-visualizer-canvas"></canvas>
+      </div>
+
+      <!-- Top Header Navigation -->
+      <header class="main-header">
+        <div class="nav-buttons">
+          <button class="nav-btn" id="history-back-btn" title="Go back"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="nav-btn" id="history-forward-btn" title="Go forward" style="opacity: 0.5; cursor: not-allowed;"><i class="fa-solid fa-chevron-right"></i></button>
+          
+          <!-- Search Box (only shown on search tab) -->
+          <div class="search-box-container" id="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="search-input" id="search-bar-input" placeholder="What do you want to listen to?">
+          </div>
+        </div>
+
+        <!-- Account Profile Dropdown Triggers -->
+        <div class="user-profile" id="user-profile-header" style="cursor: pointer; position: relative; z-index:9999;">
+          <div class="profile-img" id="user-avatar">DG</div>
+          <span id="user-name-label">Darshtify Guest</span>
+          <i class="fa-solid fa-caret-down" style="font-size: 11px; margin-left: 4px;"></i>
+          
+          <!-- Dropdown Options List -->
+          <div class="profile-dropdown" id="profile-dropdown-menu">
+            <div class="dropdown-item" id="drop-profile-settings"><i class="fa-solid fa-user-gear"></i> Profile Settings</div>
+            <div class="dropdown-item" id="drop-upgrade-premium" style="color: #ffd700; font-weight:600;"><i class="fa-solid fa-crown"></i> Get Premium</div>
+            <div class="dropdown-item" id="drop-auth-action"><i class="fa-solid fa-right-to-bracket"></i> Login / Register</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Main Content Section -->
+      <div class="content-area" id="main-content-scroll">
+        
+        <!-- Tab 1: Home Screen -->
+        <div class="content-section active" id="section-home">
+          <div class="welcome-banner">
+            <h1 id="welcome-text">Good evening</h1>
+          </div>
+
+          <!-- Recently Played Quick Grid -->
+          <div class="welcome-grid" id="quick-access-grid">
+            <!-- 6 Items injected dynamically -->
+          </div>
+
+          <!-- Section: Featured Mixes -->
+          <div class="section-header">
+            <h2>Made For You</h2>
+          </div>
+          <div class="cards-grid" id="made-for-you-grid">
+            <!-- Cards injected dynamically -->
+          </div>
+
+          <!-- Section: Recommended Tracks -->
+          <div class="section-header">
+            <h2>Recommended Tracks</h2>
+          </div>
+          <div class="cards-grid" id="recommended-grid">
+            <!-- Cards injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Search Screen -->
+        <div class="content-section" id="section-search">
+          <!-- Active Search Results -->
+          <div id="search-results-container" style="display: none; margin-bottom: 24px;">
+            <div class="section-header">
+              <h2>Search Results</h2>
+            </div>
+            <div class="tracks-table-container">
+              <table class="tracks-table">
+                <thead>
+                  <tr>
+                    <th class="track-index-col">#</th>
+                    <th>Title</th>
+                    <th>Album</th>
+                    <th><i class="fa-regular fa-clock"></i></th>
+                  </tr>
+                </thead>
+                <tbody id="search-results-table-body">
+                  <!-- Search items injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Default Genre Cards -->
+          <div class="section-header" id="genres-title">
+            <h2>Browse all</h2>
+          </div>
+          <div class="search-genres-grid" id="genres-categories-grid">
+            <!-- Colored card overlays dynamically generated -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Detailed Playlist / Album View -->
+        <div class="content-section" id="section-playlist">
+          <div class="playlist-header-banner" id="playlist-details-banner">
+            <div class="playlist-header-cover" id="playlist-cover-art">
+              <!-- Replaced dynamically with img or icon -->
+            </div>
+            <div class="playlist-header-details">
+              <span class="playlist-header-type" id="playlist-type-label">Playlist</span>
+              <h1 class="playlist-header-title" id="playlist-name-label">Liked Songs</h1>
+              <div class="playlist-header-meta">
+                <span class="highlight" id="playlist-owner-label">Darshtify Guest</span>
+                <span class="bullet"></span>
+                <span id="playlist-count-label">0 songs</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="playlist-controls-row">
+            <button class="play-main-btn" id="playlist-play-main" title="Play playlist"><i class="fa-solid fa-play"></i></button>
+            <button class="btn-secondary-circle" id="playlist-like-btn" title="Like playlist"><i class="fa-regular fa-heart"></i></button>
+            <button class="btn-secondary-circle" id="playlist-delete-btn" title="Delete playlist" style="display: none;"><i class="fa-regular fa-trash-can"></i></button>
+          </div>
+
+          <div class="playlist-search-sort-row">
+            <div class="playlist-filter-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="playlist-filter-input" placeholder="Search in playlist...">
+            </div>
+            <div class="playlist-sort-box">
+              <label for="playlist-sort-select">Sort by:</label>
+              <select id="playlist-sort-select" class="playlist-sort-dropdown">
+                <option value="default">Default</option>
+                <option value="title">Title</option>
+                <option value="artist">Artist</option>
+                <option value="album">Album</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tracks-table-container">
+            <table class="tracks-table">
+              <thead>
+                <tr>
+                  <th class="track-index-col">#</th>
+                  <th>Title</th>
+                  <th>Album</th>
+                  <th><i class="fa-regular fa-clock"></i></th>
+                </tr>
+              </thead>
+              <tbody id="playlist-tracks-table-body">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Local Files Importing Screen -->
+        <div class="content-section" id="section-local">
+          <div class="welcome-banner">
+            <h1>Local Files</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px;">Play your own local MP3 files directly in the browser. Stored locally on your machine!</p>
+          </div>
+
+          <!-- Drag and Drop Overlay -->
+          <div class="dropzone-container" id="local-files-dropzone">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Drag and drop your MP3 files here, or click to browse</p>
+            <button class="file-input-btn">Choose Files</button>
+            <input type="file" id="local-files-hidden-input" multiple accept="audio/mp3, audio/*" style="display: none;">
+          </div>
+
+          <div class="section-header">
+            <h2>Imported Tracks</h2>
+          </div>
+
+          <div class="tracks-table-container">
+            <table class="tracks-table">
+              <thead>
+                <tr>
+                  <th class="track-index-col">#</th>
+                  <th>Title</th>
+                  <th>Size</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="local-tracks-table-body">
+                <!-- Local items injected dynamically -->
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                    No local files imported yet. Drag & drop files or choose files above.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 5: Dedicated Queue Panel view inside Main Area -->
+        <div class="content-section" id="section-queue">
+          <div class="welcome-banner">
+            <h1>Play Queue</h1>
+            <p style="color: var(--text-secondary); margin-top: 4px;">View your active track queue and upcoming songs.</p>
+          </div>
+
+          <!-- Queue Details -->
+          <div class="section-header" style="margin-top: 24px;">
+            <h2>Now Playing</h2>
+          </div>
+          <div class="tracks-table-container">
+            <table class="tracks-table">
+              <tbody id="queue-now-playing-table-body">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-header" style="margin-top: 36px; display: flex; align-items: center; justify-content: space-between;">
+            <h2>Next Up in Queue</h2>
+            <button class="btn-flat" id="queue-clear-all-btn" style="font-size: 13px; color: var(--text-secondary);"><i class="fa-solid fa-ban" style="margin-right:4px;"></i> Clear Queue</button>
+          </div>
+          <div class="tracks-table-container">
+            <table class="tracks-table">
+              <thead>
+                <tr>
+                  <th class="track-index-col">#</th>
+                  <th>Title</th>
+                  <th>Album</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="queue-upcoming-table-body">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 6: Synced Lyrics View -->
+        <div class="content-section" id="section-lyrics">
+          <div class="lyrics-view-container">
+            <div class="lyrics-bg-glow" id="lyrics-bg-glow"></div>
+            <div class="lyrics-content-wrapper">
+              <div class="lyrics-track-header">
+                <div class="lyrics-track-art" id="lyrics-track-cover"></div>
+                <div class="lyrics-track-info">
+                  <h1 id="lyrics-track-title-label">Not Playing</h1>
+                  <p id="lyrics-track-artist-label">Select a song to see lyrics</p>
+                </div>
+              </div>
+              <div class="lyrics-scroll-area" id="lyrics-lines-container">
+                <div class="lyrics-line-placeholder">No lyrics available for this song.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Queue Panel (Right Sidebar, starts collapsed in CSS width = 0) -->
+    <aside class="queue-panel" id="right-queue-drawer">
+      <div class="queue-header">
+        <h3>Play Queue</h3>
+        <button class="queue-close-btn" id="queue-close-btn" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="queue-content">
+        <!-- Now Playing Card Preview -->
+        <div class="now-playing-peek">
+          <span class="peek-label">Now Playing</span>
+          <div class="peek-art" id="queue-peek-cover-art">
+            <!-- Rendered dynamically -->
+          </div>
+          <div class="peek-meta">
+            <div class="track-meta-block">
+              <span class="track-title" id="queue-peek-title">Song Title</span>
+              <span class="track-artist" id="queue-peek-artist">Artist Name</span>
+            </div>
+            <button class="like-button" id="queue-peek-like-btn" title="Like song"><i class="fa-regular fa-heart"></i></button>
+          </div>
+        </div>
+
+        <!-- Next Songs Section -->
+        <div class="queue-list-section">
+          <span class="peek-label">Next Up</span>
+          <div class="queue-items-container" id="queue-tracks-list">
+            <!-- Queue rows injected dynamically -->
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bottom Audio Seeker Player Bar -->
+    <footer class="player-bar">
+      
+      <!-- Player Left: Track details -->
+      <div class="player-track-info">
+        <div class="player-art-container" id="player-track-cover">
+          <!-- Rendered dynamically -->
+        </div>
+        <div class="player-text-info">
+          <span class="player-title" id="player-track-title">Not Playing</span>
+          <span class="player-artist" id="player-track-artist">Select a track</span>
+        </div>
+        <button class="like-button" id="player-like-btn" title="Like song"><i class="fa-regular fa-heart"></i></button>
+      </div>
+
+      <!-- Player Center: Controls timeline -->
+      <div class="player-controls-container">
+        <div class="player-buttons">
+          <button class="control-btn" id="player-shuffle-btn" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+          <button class="control-btn" id="player-prev-btn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+          <button class="control-btn play-pause-btn" id="player-play-btn" title="Play"><i class="fa-solid fa-play"></i></button>
+          <button class="control-btn" id="player-next-btn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+          <button class="control-btn" id="player-repeat-btn" title="Repeat"><i class="fa-solid fa-repeat"></i></button>
+        </div>
+
+        <div class="timeline-container">
+          <span class="time-stamp" id="player-current-time">0:00</span>
+          <div class="slider-input-wrapper" id="seek-slider-wrapper">
+            <input type="range" class="custom-range-slider" id="player-seek-slider" min="0" max="100" value="0">
+            <div class="slider-fill-progress" id="player-seek-progress" style="width: 0%;"></div>
+            <div class="timeline-tooltip" id="player-seek-tooltip">0:00</div>
+          </div>
+          <span class="time-stamp" id="player-total-duration">0:00</span>
+        </div>
+      </div>
+
+      <!-- Player Right: Volume & layout configs -->
+      <div class="player-utilities">
+        <button class="utility-btn" id="eq-toggle-btn" title="Audio Equalizer & FX"><i class="fa-solid fa-sliders"></i></button>
+        <button class="utility-btn" id="lyrics-toggle-btn" title="Song Lyrics"><i class="fa-solid fa-microphone-lines"></i></button>
+        <button class="utility-btn" id="focus-mode-toggle-btn" title="Fullscreen Visualizer Mode"><i class="fa-solid fa-expand"></i></button>
+        <button class="utility-btn" id="visualizer-toggle-btn" title="Toggle Background Audio Waves"><i class="fa-solid fa-wave-square"></i></button>
+        <button class="utility-btn" id="queue-toggle-btn" title="Queue list"><i class="fa-solid fa-list-ul"></i></button>
+        
+        <div class="volume-container">
+          <button class="utility-btn" id="player-mute-btn" style="width: 24px;" title="Mute/Unmute"><i class="fa-solid fa-volume-high"></i></button>
+          <div class="slider-input-wrapper" style="width: 80px;">
+            <input type="range" class="custom-range-slider" id="player-volume-slider" min="0" max="100" value="70">
+            <div class="slider-fill-progress" id="player-volume-progress" style="width: 70%;"></div>
+          </div>
+        </div>
+      </div>
+
+    </footer>
+
+    <!-- Bottom Mobile Navigation Bar -->
+    <nav class="mobile-bottom-nav">
+      <a class="mobile-nav-item active" data-view="home">
+        <i class="fa-solid fa-house"></i>
+        <span>Home</span>
+      </a>
+      <a class="mobile-nav-item" data-view="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Search</span>
+      </a>
+      <a class="mobile-nav-item" data-view="lyrics">
+        <i class="fa-solid fa-microphone-lines"></i>
+        <span>Lyrics</span>
+      </a>
+      <a class="mobile-nav-item" data-view="queue">
+        <i class="fa-solid fa-list-ol"></i>
+        <span>Queue</span>
+      </a>
+      <a class="mobile-nav-item" data-view="liked">
+        <i class="fa-solid fa-heart"></i>
+        <span>Liked</span>
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- Dialog Popups / Modal Backdrop (Create Playlist) -->
+  <div class="modal-overlay" id="create-playlist-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create Playlist</h3>
+        <button class="modal-close-btn" id="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="new-playlist-name">Playlist Name</label>
+          <input type="text" class="form-input" id="new-playlist-name" placeholder="My Playlist #1" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-flat" id="modal-cancel-btn">Cancel</button>
+        <button class="btn-filled" id="modal-save-btn">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Authentication & Profile Settings Modal -->
+  <div class="modal-overlay" id="account-auth-modal">
+    <div class="modal-content" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 id="auth-modal-title">Log In to Darshtify</h3>
+        <button class="modal-close-btn" id="auth-modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Log In Pane -->
+        <div id="pane-login" class="auth-pane">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Email Address</label>
+            <input type="email" class="form-input" id="login-email" placeholder="email@example.com" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Password</label>
+            <input type="password" class="form-input" id="login-password" placeholder="••••••••">
+          </div>
+          <button class="btn-filled" id="btn-login-submit" style="width: 100%;">Log In</button>
+          <p style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-secondary);">
+            Don't have an account? <span id="switch-to-register" style="color: var(--spotify-green); cursor: pointer; font-weight: 600;">Sign Up</span>
+          </p>
+        </div>
+
+        <!-- Sign Up Pane -->
+        <div id="pane-register" class="auth-pane" style="display: none;">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Username</label>
+            <input type="text" class="form-input" id="register-username" placeholder="MusicLover" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Email Address</label>
+            <input type="email" class="form-input" id="register-email" placeholder="email@example.com" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Password</label>
+            <input type="password" class="form-input" id="register-password" placeholder="••••••••">
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Subscription Tier</label>
+            <select class="form-input" id="register-tier" style="background-color: #2a2a30; border: none; font-family: var(--font-family); color: #fff;">
+              <option value="free">Darshtify Free (Simulated Ads)</option>
+              <option value="premium">Darshtify Premium 👑 (Ad-free & Visualizers)</option>
+            </select>
+          </div>
+          <button class="btn-filled" id="btn-register-submit" style="width: 100%;">Create Account</button>
+          <p style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-secondary);">
+            Already have an account? <span id="switch-to-login" style="color: var(--spotify-green); cursor: pointer; font-weight: 600;">Log In</span>
+          </p>
+        </div>
+
+        <!-- Profile Settings Pane (Logged In) -->
+        <div id="pane-settings" class="auth-pane" style="display: none;">
+          <div class="form-group" style="margin-bottom: 16px; align-items: center;">
+            <label>Profile Picture</label>
+            <div class="settings-avatar-wrapper" style="position: relative; width: 80px; height: 80px; border-radius: 50%; margin-top: 6px; cursor: pointer; overflow: hidden; background: linear-gradient(135deg, var(--spotify-green), #0a9d45); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.05);">
+              <span id="settings-avatar-preview">DG</span>
+              <div class="avatar-upload-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;">
+                <i class="fa-solid fa-camera" style="font-size: 20px; color: #fff;"></i>
+              </div>
+            </div>
+            <input type="file" id="settings-avatar-input" accept="image/*" style="display: none;">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Username</label>
+            <input type="text" class="form-input" id="settings-username" autocomplete="off">
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Manage Subscription</label>
+            <select class="form-input" id="settings-tier" style="background-color: #2a2a30; border: none; font-family: var(--font-family); color: #fff;">
+              <option value="free">Darshtify Free (Simulated Ads)</option>
+              <option value="premium">Darshtify Premium 👑 (Ad-Free & Visualizers)</option>
+            </select>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Backup & Portability</label>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <button class="btn-flat" id="btn-backup-export" style="font-size: 13px; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="fa-solid fa-download"></i> Export JSON</button>
+              <button class="btn-flat" id="btn-backup-import-trigger" style="font-size: 13px; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="fa-solid fa-upload"></i> Import JSON</button>
+            </div>
+            <input type="file" id="backup-file-input" accept=".json" style="display: none;">
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="btn-flat" id="btn-logout-submit" style="color: #ef4444; flex: 1; text-align: left; padding-left: 0;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
+            <button class="btn-filled" id="btn-settings-save" style="flex: 1.5;">Save Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Alert Modal -->
+  <div class="modal-overlay" id="alert-modal" style="z-index: 100000;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; gap: 16px; display: flex; flex-direction: column;">
+      <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+        <i class="fa-solid fa-circle-info" style="font-size: 40px; color: var(--theme-color); text-shadow: 0 0 15px rgba(var(--theme-color-rgb), 0.3);"></i>
+      </div>
+      <div class="modal-body" style="padding-top: 0; padding-bottom: 0;">
+        <p id="alert-message-text" style="font-size: 15px; line-height: 1.5; color: var(--text-primary); margin: 0;"></p>
+      </div>
+      <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 0; margin-top: 12px;">
+        <button class="btn-filled" id="alert-modal-ok-btn" style="min-width: 100px;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Modal -->
+  <div class="modal-overlay" id="confirm-modal" style="z-index: 100000;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; gap: 16px; display: flex; flex-direction: column;">
+      <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+        <i class="fa-solid fa-circle-question" style="font-size: 40px; color: #ffd700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);"></i>
+      </div>
+      <div class="modal-body" style="padding-top: 0; padding-bottom: 0;">
+        <p id="confirm-message-text" style="font-size: 15px; line-height: 1.5; color: var(--text-primary); margin: 0;"></p>
+      </div>
+      <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 0; gap: 12px; margin-top: 12px;">
+        <button class="btn-flat" id="confirm-modal-cancel-btn" style="min-width: 100px; border: 1px solid rgba(255,255,255,0.1);">Cancel</button>
+        <button class="btn-filled" id="confirm-modal-ok-btn" style="min-width: 100px; background-color: #ef4444; color: #fff;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Context Menu for Tracks (Add to playlist, details etc) -->
+  <div class="custom-context-menu" id="track-context-menu">
+    <div class="menu-item" id="menu-play-now">
+      <i class="fa-solid fa-play"></i> Play Now
+    </div>
+    <div class="menu-item" id="menu-add-queue">
+      <i class="fa-solid fa-list-ol"></i> Add to Queue
+    </div>
+    <div class="menu-item" id="menu-toggle-like">
+      <i class="fa-solid fa-heart"></i> Add to Liked Songs
+    </div>
+    <div class="menu-item submenu-parent" id="menu-add-playlist-parent">
+      <i class="fa-solid fa-plus"></i> Add to Playlist
+      <div class="submenu" id="context-playlists-submenu">
+        <!-- Submenu playlists injected dynamically -->
+      </div>
+    </div>
+    <div class="menu-item" id="menu-remove-from-playlist" style="display: none;">
+      <i class="fa-solid fa-trash-can"></i> Remove from Playlist
+    </div>
+  </div>
+
+  <!-- Toast Notification popup -->
+  <div id="toast-notification">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-message">Added to Liked Songs</span>
+  </div>
+
+  <!-- Fullscreen Ambient Blur Focus Overlay -->
+  <div id="focus-mode-overlay">
+    <button class="focus-close-btn" id="focus-close-btn" title="Exit Fullscreen"><i class="fa-solid fa-compress"></i></button>
+    <div class="focus-bg-glow" id="focus-bg-glow"></div>
+    <div class="focus-content">
+      <div class="focus-art" id="focus-cover-art">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="focus-meta">
+        <h1 id="focus-track-title">Song Title</h1>
+        <p id="focus-track-artist">Artist Name</p>
+      </div>
+      <div class="focus-controls">
+        <button class="control-btn" id="focus-prev-btn" title="Previous"><i class="fa-solid fa-backward-step"></i></button>
+        <button class="control-btn play-pause-btn" id="focus-play-btn" title="Play"><i class="fa-solid fa-play"></i></button>
+        <button class="control-btn" id="focus-next-btn" title="Next"><i class="fa-solid fa-forward-step"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulated Ad Break Overlay popup -->
+  <div class="modal-overlay" id="ad-overlay-popup" style="background-color: rgba(0, 0, 0, 0.95); transition: opacity 0.5s ease;">
+    <div class="focus-content" style="max-width: 500px; gap: 20px;">
+      <i class="fa-solid fa-rectangle-ad" style="font-size: 80px; color: #ffd700; filter: drop-shadow(0 0 15px rgba(255,215,0,0.4));"></i>
+      <h2 style="font-size: 28px; font-weight: 800; color: #ffd700;">Darshtify Free Ad Break</h2>
+      <p id="ad-countdown-text" style="font-size: 16px; color: #fff; font-weight:600;">Ad playing... 5s remaining</p>
+      <div style="background-color: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px;">
+        <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #ffd700; display: block; margin-bottom: 6px; letter-spacing: 0.5px;">Ad Sponsor message</span>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5;">Tired of ad interruptions? Upgrade to **Darshtify Premium** for ad-free playback, visualizers, and fullscreen overlays!</p>
+      </div>
+      <button class="btn-filled" id="btn-ad-upgrade-now" style="background-color:#ffd700; color:#000; margin-top: 12px;"><i class="fa-solid fa-crown"></i> Upgrade to Premium</button>
+    </div>
+  </div>
+
+  <!-- Equalizer Control Drawer (Saves settings to local storage) -->
+  <aside class="eq-drawer" id="equalizer-drawer">
+    <div class="eq-header">
+      <h3><i class="fa-solid fa-sliders"></i> Audio Equalizer & FX</h3>
+      <button class="eq-close-btn" id="eq-close-drawer-btn" title="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <div class="eq-content">
+      <!-- EQ Presets -->
+      <div class="form-group">
+        <label for="eq-preset-select">Acoustic Preset</label>
+        <select class="form-input" id="eq-preset-select" style="background-color: #2a2a30; border: none; font-family: var(--font-family); color: #fff;">
+          <option value="flat">Flat (Default)</option>
+          <option value="bass-boost">Bass Booster 🔊</option>
+          <option value="vocal-boost">Vocal Booster 🎙️</option>
+          <option value="acoustic">Acoustic 🎸</option>
+          <option value="pop">Pop 🎵</option>
+          <option value="rock">Rock ⚡</option>
+          <option value="classical">Classical 🎻</option>
+          <option value="electronic">Electronic 🎛️</option>
+        </select>
+      </div>
+
+      <!-- Graphic EQ Sliders (10-Band) -->
+      <div class="eq-sliders-section">
+        <span class="eq-section-label">10-Band Equalizer</span>
+        <div class="eq-sliders-grid" id="eq-sliders-container">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+
+      <div class="eq-separator"></div>
+
+      <!-- Spatial Reverb Selector -->
+      <div class="form-group">
+        <label for="fx-reverb-select">3D Spatial Room Effect</label>
+        <select class="form-input" id="fx-reverb-select" style="background-color: #2a2a30; border: none; font-family: var(--font-family); color: #fff;">
+          <option value="none">Disabled (Dry)</option>
+          <option value="room">Living Room 🏠</option>
+          <option value="hall">Concert Hall 🏛️</option>
+          <option value="stadium">Grand Stadium 🏟️</option>
+          <option value="space">Deep Space 🌌</option>
+        </select>
+      </div>
+
+      <!-- Stereo Pan Balance & Crossfade -->
+      <div class="eq-fx-row">
+        <div class="form-group" style="flex: 1;">
+          <label>Stereo Balance: <span id="fx-pan-label" style="color: var(--spotify-green);">Center</span></label>
+          <div class="slider-input-wrapper">
+            <input type="range" class="custom-range-slider" id="fx-pan-slider" min="-100" max="100" value="0">
+            <div class="slider-fill-progress" id="fx-pan-progress" style="width: 50%; left: 0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="eq-fx-row" style="margin-top: 12px;">
+        <div class="form-group" style="flex: 1;">
+          <label>Auto-Crossfade: <span id="fx-crossfade-label" style="color: var(--spotify-green);">Disabled</span></label>
+          <div class="slider-input-wrapper">
+            <input type="range" class="custom-range-slider" id="fx-crossfade-slider" min="0" max="12" value="0">
+            <div class="slider-fill-progress" id="fx-crossfade-progress" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </aside>
+
+  <!-- Application Entry Point -->
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>
